@@ -15,44 +15,61 @@ type Log struct {
 	w      rollingwriter.RollingWriter
 }
 
+type Config struct {
+	App      string
+	FilePath string
+}
+
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 }
 
-func New(filePath string) (log Log, err error) {
+func New(cfg *Config) (log Log, err error) {
 
-	// Paths
-	logPath := path.Dir(filePath)
-	fileName := strings.ReplaceAll(path.Base(filePath), path.Ext(filePath), "")
+	// Init
+	log.logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	// Config
-	config := rollingwriter.Config{
-		LogPath:                logPath,
-		TimeTagFormat:          "060102150405",
-		FileName:               fileName,
-		MaxRemain:              5,
-		RollingPolicy:          rollingwriter.VolumeRolling,
-		RollingTimePattern:     "* * * * * *",
-		RollingVolumeSize:      "64M",
-		WriterMode:             "async",
-		BufferWriterThershould: 8 * 1024 * 1024,
-		Compress:               true,
+	// Write to file and console if path exist
+	if len(cfg.FilePath) > 0 {
+
+		// Paths
+		logPath := path.Dir(cfg.FilePath)
+		fileName := strings.ReplaceAll(path.Base(cfg.FilePath), path.Ext(cfg.FilePath), "")
+
+		// Config
+		config := rollingwriter.Config{
+			LogPath:                logPath,
+			TimeTagFormat:          "060102150405",
+			FileName:               fileName,
+			MaxRemain:              5,
+			RollingPolicy:          rollingwriter.VolumeRolling,
+			RollingTimePattern:     "* * * * * *",
+			RollingVolumeSize:      "64M",
+			WriterMode:             "async",
+			BufferWriterThershould: 8 * 1024 * 1024,
+			Compress:               true,
+		}
+
+		// Create a writer
+		log.w, err = rollingwriter.NewWriterFromConfig(&config)
+		if err != nil {
+			return
+		}
+
+		// Log to file and console
+		log.logger = zerolog.New(io.MultiWriter(log.w, os.Stdout)).With().Timestamp().Logger()
 	}
-
-	// Create a writer
-	log.w, err = rollingwriter.NewWriterFromConfig(&config)
-	if err != nil {
-		return
-	}
-
-	// Log to file and console
-	log.logger = zerolog.New(io.MultiWriter(log.w, os.Stdout)).With().Timestamp().Logger()
 
 	// Add datetime hook
 	dtHook := zerolog.HookFunc(func(e *zerolog.Event, level zerolog.Level, msg string) {
 		e.Str("datetime", time.Now().Format("02.01.2006 15:04:05.999999999"))
 	})
 	log.logger = log.logger.Hook(dtHook)
+
+	// Add app if exist
+	if len(cfg.App) > 0 {
+		log.logger = log.logger.With().Str("app", cfg.App).Logger()
+	}
 
 	return
 }
