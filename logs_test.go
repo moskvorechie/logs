@@ -13,7 +13,10 @@ func TestNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	l, err := logs.New("main.log")
+	l, err := logs.New(&logs.Config{
+		App:      "test",
+		FilePath: "main.log",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,6 +29,7 @@ func TestNew(t *testing.T) {
 		Level    string `json:"level"`
 		Time     int    `json:"time"`
 		Datetime string `json:"datetime"`
+		App      string `json:"app"`
 		Message  string `json:"message"`
 	}
 	var m Message
@@ -34,6 +38,9 @@ func TestNew(t *testing.T) {
 		t.Fatal(err)
 	}
 	if m.Message != "123" {
-		t.Fatal("Not eq")
+		t.Fatal("Not eq Message")
+	}
+	if m.App != "test" {
+		t.Fatal("Not eq App")
 	}
 }

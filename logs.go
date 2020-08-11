@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -134,6 +135,12 @@ func (l *Log) FatalF(format string, v ...interface{}) {
 	l.logger.Fatal().Msgf(format, v...)
 }
 
-func (l *Log) SendErr(err error) {
-	l.logger.Err(err).Send()
+func (l *Log) LogError(err error) {
+	l.logger.Error().Msgf("Error stack: %s", string(debug.Stack()))
+	l.logger.Error().Msgf("Error: %+v", err)
+}
+
+func (l *Log) FatalError(err error) {
+	l.logger.Error().Msgf("Fatal stack: \n" + string(debug.Stack()))
+	l.logger.Fatal().Msgf("Error: %+v", err)
 }
