@@ -17,8 +17,9 @@ type Log struct {
 }
 
 type Config struct {
-	App      string
-	FilePath string
+	App          string
+	FilePath     string
+	FileTruncate bool
 }
 
 func init() {
@@ -32,6 +33,16 @@ func New(cfg *Config) (log Log, err error) {
 
 	// Write to file and console if path exist
 	if len(cfg.FilePath) > 0 {
+
+		// Truncate file
+		if cfg.FileTruncate {
+			f, _ := os.OpenFile(cfg.FilePath, os.O_WRONLY, 0666)
+			if f != nil {
+				_ = f.Truncate(0)
+				_, _ = f.Seek(0, 0)
+				_ = f.Close()
+			}
+		}
 
 		// Paths
 		logPath := path.Dir(cfg.FilePath)

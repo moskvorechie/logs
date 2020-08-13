@@ -9,10 +9,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	err := os.Remove("main.log")
-	if err != nil {
-		t.Fatal(err)
-	}
+	_ = os.Remove("main.log")
 	l, err := logs.New(&logs.Config{
 		App:      "test",
 		FilePath: "main.log",
