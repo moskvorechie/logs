@@ -1,11 +1,12 @@
 package logs
 
 import (
-	"github.com/arthurkiller/rollingwriter"
+	"github.com/moskvorechie/rollingwriter"
 	"github.com/rs/zerolog"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -17,9 +18,10 @@ type Log struct {
 }
 
 type Config struct {
-	App          string
-	FilePath     string
-	FileTruncate bool
+	App        string
+	FilePath   string
+	Clear      bool
+	RollConfig *rollingwriter.Config
 }
 
 func init() {
@@ -35,12 +37,14 @@ func New(cfg *Config) (log Log, err error) {
 	if len(cfg.FilePath) > 0 {
 
 		// Truncate file
-		if cfg.FileTruncate {
-			f, _ := os.OpenFile(cfg.FilePath, os.O_WRONLY, 0666)
-			if f != nil {
-				_ = f.Truncate(0)
-				_, _ = f.Seek(0, 0)
-				_ = f.Close()
+		if cfg.Clear {
+			_ = os.Remove(cfg.FilePath)
+			files, err := filepath.Glob(cfg.FilePath + "*")
+			if err != nil {
+				panic(err)
+			}
+			for _, f := range files {
+				_ = os.Remove(f)
 			}
 		}
 
@@ -57,9 +61,12 @@ func New(cfg *Config) (log Log, err error) {
 			RollingPolicy:          rollingwriter.VolumeRolling,
 			RollingTimePattern:     "* * * * * *",
 			RollingVolumeSize:      "64M",
-			WriterMode:             "async",
+			WriterMode:             "buffer",
 			BufferWriterThershould: 8 * 1024 * 1024,
-			Compress:               true,
+			Compress:               false,
+		}
+		if cfg.RollConfig != nil {
+			config = *cfg.RollConfig
 		}
 
 		// Create a writer
