@@ -1,27 +1,24 @@
 package logs
 
 import (
-	"github.com/moskvorechie/rollingwriter"
+	"github.com/kei2100/rotate"
 	"github.com/rs/zerolog"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime/debug"
-	"strings"
 	"time"
 )
 
 type Log struct {
 	logger zerolog.Logger
-	w      rollingwriter.RollingWriter
+	w      *rotate.Writer
 }
 
 type Config struct {
-	App        string
-	FilePath   string
-	Clear      bool
-	RollConfig *rollingwriter.Config
+	App      string
+	FilePath string
+	Clear    bool
 }
 
 func init() {
@@ -50,33 +47,16 @@ func New(cfg *Config) (log Log, err error) {
 
 		// Paths
 		logPath := path.Dir(cfg.FilePath)
-		fileName := strings.ReplaceAll(path.Base(cfg.FilePath), path.Ext(cfg.FilePath), "")
+		fileName := path.Base(cfg.FilePath)
 
-		// Config
-		config := rollingwriter.Config{
-			LogPath:                logPath,
-			TimeTagFormat:          "060102150405",
-			FileName:               fileName,
-			MaxRemain:              5,
-			RollingPolicy:          rollingwriter.VolumeRolling,
-			RollingTimePattern:     "* * * * * *",
-			RollingVolumeSize:      "64M",
-			WriterMode:             "buffer",
-			BufferWriterThershould: 8 * 1024 * 1024,
-			Compress:               false,
-		}
-		if cfg.RollConfig != nil {
-			config = *cfg.RollConfig
-		}
-
-		// Create a writer
-		log.w, err = rollingwriter.NewWriterFromConfig(&config)
+		const bytes3 int64 = 5 * 1024 * 1024
+		log.w, err = rotate.NewWriter(logPath, fileName, rotate.WithSizeBasedPolicy(bytes3))
 		if err != nil {
-			return
+			panic(err)
 		}
 
 		// Log to file and console
-		log.logger = zerolog.New(io.MultiWriter(log.w, os.Stdout)).With().Timestamp().Logger()
+		log.logger = zerolog.New(log.w).With().Timestamp().Logger()
 	}
 
 	// Add datetime hook
