@@ -3,6 +3,7 @@ package logs
 import (
 	"github.com/kei2100/rotate"
 	"github.com/rs/zerolog"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,9 +17,10 @@ type Log struct {
 }
 
 type Config struct {
-	App      string
-	FilePath string
-	Clear    bool
+	App        string
+	FilePath   string
+	Clear      bool
+	ToFileOnly bool
 }
 
 func init() {
@@ -56,7 +58,11 @@ func New(cfg *Config) (log Log, err error) {
 		}
 
 		// Log to file and console
-		log.logger = zerolog.New(log.w).With().Timestamp().Logger()
+		if cfg.ToFileOnly {
+			log.logger = zerolog.New(log.w).With().Timestamp().Logger()
+		} else {
+			log.logger = zerolog.New(io.MultiWriter(log.w, os.Stdout)).With().Timestamp().Logger()
+		}
 	}
 
 	// Add datetime hook
