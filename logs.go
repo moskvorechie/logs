@@ -104,47 +104,47 @@ func (l *Log) Debug(text string) {
 }
 
 func (l *Log) DebugF(format string, v ...interface{}) {
-	l.logger.Debug().Msgf(format, v...)
+	l.logger.Debug().Caller(1).Msgf(format, v...)
 }
 
 func (l *Log) Info(text string) {
-	l.logger.Info().Msg(text)
+	l.logger.Info().Caller(1).Msg(text)
 }
 
 func (l *Log) InfoF(format string, v ...interface{}) {
-	l.logger.Info().Msgf(format, v...)
+	l.logger.Info().Caller(1).Msgf(format, v...)
 }
 
 func (l *Log) Warn(text string) {
-	l.logger.Warn().Msg(text)
+	l.logger.Warn().Caller(1).Msg(text)
 }
 
 func (l *Log) WarnF(format string, v ...interface{}) {
-	l.logger.Warn().Msgf(format, v...)
+	l.logger.Warn().Caller(1).Msgf(format, v...)
 }
 
 func (l *Log) Error(text string) {
-	l.logger.Error().Msg(text)
+	l.logger.Error().Caller(1).Msg(text)
 }
 
 func (l *Log) ErrorF(format string, v ...interface{}) {
-	l.logger.Error().Msgf(format, v...)
+	l.logger.Error().Caller(1).Msgf(format, v...)
 }
 
 func (l *Log) Fatal(text string) {
-	l.logger.Fatal().Msg(text)
+	l.logger.Fatal().Caller(1).Msg(text)
 }
 
 func (l *Log) FatalF(format string, v ...interface{}) {
-	l.logger.Fatal().Msgf(format, v...)
+	l.logger.Fatal().Caller(1).Msgf(format, v...)
 }
 
 func (l *Log) LogError(err error) {
-	l.logger.Error().Msgf("Error stack: %s", string(debug.Stack()))
-	l.logger.Error().Msgf("Error: %+v", err)
+	l.logger.Error().Caller(1).Msgf("Error stack: %s", string(debug.Stack()))
+	l.logger.Error().Caller(1).Msgf("Error: %+v", err)
 }
 
 func (l *Log) FatalError(err error) {
-	l.logger.Error().Msgf("Fatal stack: \n" + string(debug.Stack()))
-	l.logger.Fatal().Msgf("Error: %+v", err)
+	l.logger.Error().Caller(1).Msgf("Fatal stack: \n" + string(debug.Stack()))
+	l.logger.Fatal().Caller(1).Msgf("Error: %+v", err)
 }
