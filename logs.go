@@ -104,8 +104,8 @@ func New(cfg *Config) (log Log, err error) {
 	return
 }
 
-func (l *Log) SetLevel(level zerolog.Level) {
-	l.logger = l.logger.Level(level)
+func (l *Log) SetLevel(level Level) {
+	l.logger = l.logger.Level(zerolog.Level(level))
 }
 
 func (l *Log) Close() {
