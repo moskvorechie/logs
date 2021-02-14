@@ -55,7 +55,8 @@ func init() {
 func New(cfg *Config) (log Log, err error) {
 
 	// Init
-	log.logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+	cw := zerolog.ConsoleWriter{Out: os.Stdout}
+	log.logger = zerolog.New(cw).With().Timestamp().Logger()
 
 	// Write to file and console if path exist
 	if len(cfg.FilePath) > 0 {
@@ -86,7 +87,7 @@ func New(cfg *Config) (log Log, err error) {
 		if cfg.ToFileOnly {
 			log.logger = zerolog.New(log.w).With().Timestamp().Logger()
 		} else {
-			log.logger = zerolog.New(io.MultiWriter(log.w, os.Stdout)).With().Timestamp().Logger()
+			log.logger = zerolog.New(io.MultiWriter(log.w, cw)).With().Timestamp().Logger()
 		}
 	}
 
